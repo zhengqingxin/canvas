@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>复杂图形-缓存测试</title>
+    <style>
+      #c {
+        position: absolute;
+        top: 98%;
+        left: 50%;
+        transform: translateX(-50%) translateY(-100%);
+        border: 1px solid #000000;
+      }
+      main {
+        width: 1280px;
+        margin: 0 auto;
+      }
+      button {
+        float: right;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <button id="btn">复杂图形-使用缓存</button>
+    </main>
+    <canvas id="c" width="1280" height="720"></canvas>
+    <script>
+      "use strict";
+
+      const canvas = document.getElementById("c");
+      const ctx = canvas.getContext("2d");
+      let ballArr = [];
+
+      const TOTAL_COUNT = 1000;
+      const BORDER_WIDTH = 1;
+      let cache = true;
+
+      class Ball {
+        constructor(x, y, vx, vy, useCache) {
+          // 坐标
+          this.x = x;
+          this.y = y;
+          // 速度
+          this.vx = vx;
+          this.vy = vy;
+          // 半径
+          this.r = getRandom(2, 20);
+          this.color = `rgba(
+            ${getRandom(0, 255)},
+            ${getRandom(0, 255)},
+            ${getRandom(0, 255)},
+            1)
+          `;
+          if (useCache) {
+            this.useCache = useCache;
+            this.cacheCanvas = document.createElement("canvas");
+            this.cacheCanvas.width = 2 * (this.r + BORDER_WIDTH);
+            this.cacheCanvas.height = 2 * (this.r + BORDER_WIDTH);
+            this.cacheCtx = this.cacheCanvas.getContext("2d");
+            this.cache();
+          }
+        }
+
+        paint() {
+          if (!this.useCache) {
+            ctx.save();
+            for (let i = 1; i < this.r; i += BORDER_WIDTH) {
+              ctx.beginPath();
+              ctx.strokeStyle = this.color;
+              ctx.arc(this.x, this.y, i, 0, 2 * Math.PI);
+              ctx.stroke();
+            }
+            ctx.restore();
+          } else {
+            ctx.drawImage(
+              this.cacheCanvas,
+              this.x - this.r,
+              this.y - this.r,
+              this.cacheCanvas.width,
+              this.cacheCanvas.height
+            );
+          }
+        }
+
+        move() {
+          this.x += this.vx;
+          this.y += this.vy;
+          if (this.x > canvas.width - this.r || this.x < this.r) {
+            this.x = this.x < this.r ? this.r : canvas.width - this.r;
+            this.vx = -this.vx;
+          }
+          if (this.y > canvas.height - this.r || this.y < this.r) {
+            this.y = this.y < this.r ? this.r : canvas.height - this.r;
+            this.vy = -this.vy;
+          }
+          this.paint();
+        }
+
+        cache() {
+          this.cacheCtx.save();
+          for (let i = 1; i < this.r; i += BORDER_WIDTH) {
+            this.cacheCtx.beginPath();
+            this.cacheCtx.strokeStyle = this.color;
+            this.cacheCtx.arc(
+              this.r + BORDER_WIDTH,
+              this.r + BORDER_WIDTH,
+              i,
+              0,
+              2 * Math.PI
+            );
+            this.cacheCtx.stroke();
+          }
+
+          this.cacheCtx.restore();
+        }
+      }
+
+      class Game {
+        init() {
+          for (let i = 0; i < TOTAL_COUNT; i++) {
+            const ball = new Ball(
+              getRandom(0, canvas.width),
+              getRandom(0, canvas.height),
+              getRandom(-5, 5),
+              getRandom(-5, 5),
+              cache
+            );
+            ballArr.push(ball);
+          }
+        }
+        update() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          for (let i = 0; i < ballArr.length; i++) {
+            ballArr[i].move();
+          }
+        }
+        loop() {
+          this.update();
+          this.reqId = requestAnimationFrame(() => this.loop());
+        }
+        start() {
+          this.init();
+          this.loop();
+        }
+      }
+
+      function getRandom(a, b) {
+        return Math.random() * (b - a) + a;
+      }
+
+      function start() {
+        window.game = new Game();
+        game.start();
+      }
+
+      function stop() {
+        cancelAnimationFrame(window.game.reqId);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        window.game = null;
+        ballArr = [];
+      }
+
+      btn.addEventListener("click", () => {
+        stop();
+        cache = !cache;
+        start();
+        btn.innerText = cache ? "复杂图形-使用缓存" : "复杂图形-不使用缓存";
+      });
+
+      start();
+    </script>
+  </body>
+</html>

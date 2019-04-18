@@ -13,13 +13,14 @@
   </head>
   <body>
     <canvas id="c" width="800" height="600"></canvas>
+    <h3 id="log" style="color:red;"></h3>
     <script>
       "use strict";
       // http://idav.ucdavis.edu/~okreylos/TAship/Spring2000/PointInPolygon.html
       const ctx = c.getContext("2d");
       ctx.fillStyle = "#f00";
       // n边形
-      const vertexNum = 4;
+      const vertexNum = 5;
       // 顶点
       let vertexArr = [];
       // lines
@@ -44,10 +45,11 @@
       ctx.closePath();
       ctx.fill();
 
-      c.addEventListener("click", e => {
+      c.addEventListener("mousemove", e => {
         const { x, y } = e;
         // drawLine(x, y);
-        checkPoint({ x, y }, lineArr);
+        const isOutside = checkPoint({ x, y }, lineArr);
+        log.innerText = `图形${isOutside ? "外" : "内"}`;
       });
 
       function checkPoint(point, lines) {
@@ -66,7 +68,6 @@
             }
           }
         }
-        console.log(intersectionCount);
         return intersectionCount % 2 === 0;
       }
 

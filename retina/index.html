@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+    <style>
+      canvas {
+        border: 1px solid #000;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="c1"></canvas>
+    <canvas id="c2"></canvas>
+    <script>
+      "use strict";
+      const ctx1 = c1.getContext("2d");
+      const ctx2 = c2.getContext("2d");
+
+      drawCircle(ctx1);
+      initRetina(c2, ctx2);
+      drawCircle(ctx2);
+
+      function drawCircle(ctx) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(50, 50, 30, 0, 2 * Math.PI);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function initRetina(canvas, ctx) {
+        const dpi = window.devicePixelRatio;
+        canvas.style.width = canvas.width + "px";
+        canvas.style.height = canvas.height + "px";
+        canvas.setAttribute("width", canvas.width * dpi);
+        canvas.setAttribute("height", canvas.height * dpi);
+        ctx.scale(dpi, dpi);
+      }
+    </script>
+  </body>
+</html>
